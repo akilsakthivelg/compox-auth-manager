@@ -1,19 +1,19 @@
-<div id="reset-password-page" style="display:none;">
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reset Password - Compox</title>
+  <title>Compox Pages</title>
   <style>
-    body {
+    /* Reset Password Styles */
+    #reset-password-page body {
       font-family: sans-serif;
       text-align: center;
       background: #f4f4f4;
       margin: 0;
       padding: 20px;
     }
-    .container {
+    #reset-password-page .container {
       max-width: 400px;
       background: white;
       padding: 20px;
@@ -21,183 +21,46 @@
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    input, button {
+    #reset-password-page input, 
+    #reset-password-page button {
       padding: 10px;
       width: 100%;
       margin: 8px 0;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-    button {
+    #reset-password-page button {
       background: #28a745;
       color: white;
       border: none;
       cursor: pointer;
     }
-    button:disabled {
+    #reset-password-page button:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-    .success {
+    #reset-password-page .success {
       color: green;
       font-weight: bold;
     }
-    .error {
+    #reset-password-page .error {
       color: red;
       font-weight: bold;
     }
-    .rules {
+    #reset-password-page .rules {
       text-align: left;
       font-size: 0.9em;
       margin-top: 5px;
     }
-    .valid {
+    #reset-password-page .valid {
       color: green;
     }
-    .invalid {
+    #reset-password-page .invalid {
       color: red;
     }
-  </style>
-</head>
-<body>
-  <!-- Initial deep link message -->
-  <div class="container" id="message-container">
-    <h2>Checking for app...</h2>
-    <p>Please wait while we try to open the Compox app.</p>
-  </div>
 
-  <!-- Reset form -->
-  <div class="container" id="reset-container" style="display:none;">
-    <h2>Reset Your Password</h2>
-    <form id="reset-form">
-      <input type="password" id="password" placeholder="New Password" required />
-      <div class="rules" id="password-rules">
-        <div id="rule-length" class="invalid">• At least 8 characters</div>
-        <div id="rule-upper" class="invalid">• At least 1 uppercase letter (A-Z)</div>
-        <div id="rule-lower" class="invalid">• At least 1 lowercase letter (a-z)</div>
-        <div id="rule-number" class="invalid">• At least 1 number (0-9)</div>
-        <div id="rule-special" class="invalid">• At least 1 special character (~`+=-_.?@$!%*#&)</div>
-      </div>
-      <button type="submit" id="update-btn" disabled>Update Password</button>
-    </form>
-    <p id="status"></p>
-  </div>
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://xsoanrrdybimemacaror.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhzb2FucnJkeWJpbWVtYWNhcm9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNDg0OTQsImV4cCI6MjA2MTkyNDQ5NH0.GbdguCKb_UdXbtG4cAYqOCZV-ejjdL7YdRE7NHrb0vM";
-    const APP_DEEP_LINK = "compox://reset-password";
-
-    const { createClient } = supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const passwordInput = document.getElementById("password");
-    const updateBtn = document.getElementById("update-btn");
-
-    // Same regex as Flutter
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~`+=\-_.?@$!%*#&])[A-Za-z\d~`+=\-_.?@$!%*#&]{8,}$/;
-
-    passwordInput.addEventListener("input", () => {
-      const pwd = passwordInput.value;
-      const rules = {
-        length: pwd.length >= 8,
-        upper: /[A-Z]/.test(pwd),
-        lower: /[a-z]/.test(pwd),
-        number: /\d/.test(pwd),
-        special: /[~`+\=\-_.?@$!%*#&]/.test(pwd)
-      };
-
-      document.getElementById("rule-length").className = rules.length ? "valid" : "invalid";
-      document.getElementById("rule-upper").className = rules.upper ? "valid" : "invalid";
-      document.getElementById("rule-lower").className = rules.lower ? "valid" : "invalid";
-      document.getElementById("rule-number").className = rules.number ? "valid" : "invalid";
-      document.getElementById("rule-special").className = rules.special ? "valid" : "invalid";
-
-      updateBtn.disabled = !passwordRegex.test(pwd);
-    });
-
-    function tryOpenApp() {
-      const now = Date.now();
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = APP_DEEP_LINK;
-      document.body.appendChild(iframe);
-
-      setTimeout(() => {
-        if (Date.now() - now < 1500) {
-          document.getElementById("message-container").style.display = "none";
-          document.getElementById("reset-container").style.display = "block";
-        }
-      }, 1000);
-    }
-
-    function getTokens() {
-      let params = new URLSearchParams(window.location.hash.substring(1));
-      if (!params.get("access_token")) {
-        params = new URLSearchParams(window.location.search);
-      }
-      return {
-        access_token: params.get("access_token"),
-        refresh_token: params.get("refresh_token"),
-        exp: params.get("exp")
-      };
-    }
-
-    document.getElementById("reset-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const password = passwordInput.value;
-      const status = document.getElementById("status");
-
-      if (!passwordRegex.test(password)) {
-        status.textContent = "Password does not meet requirements.";
-        status.className = "error";
-        return;
-      }
-
-      const { error } = await supabaseClient.auth.updateUser({ password });
-
-      if (error) {
-        status.textContent = error.message;
-        status.className = "error";
-      } else {
-        status.textContent = "Password updated successfully!";
-        status.className = "success";
-      }
-    });
-
-    const { access_token, refresh_token, exp } = getTokens();
-    if (!access_token) {
-      document.getElementById("message-container").innerHTML = "<p class='error'>Invalid or expired link.</p>";
-    } else {
-      // Check expiry if provided
-      if (exp && Date.now() / 1000 > parseInt(exp)) {
-        document.getElementById("message-container").innerHTML = "<p class='error'>This reset link has expired.</p>";
-      } else {
-        supabaseClient.auth.setSession({ access_token, refresh_token: refresh_token || "" })
-          .then(({ error }) => {
-            if (error) {
-              document.getElementById("message-container").innerHTML = `<p class='error'>${error.message}</p>`;
-            } else {
-              tryOpenApp();
-            }
-          });
-      }
-    }
-  </script>
-</body>
-</html>
-</div>
-
-<div id="email-verified-page" style="display:none;">
-  <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Email Verified - Compox</title>
-  <style>
-    body {
+    /* Email Verified Styles */
+    #email-verified-page {
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
@@ -205,20 +68,20 @@
       background-color: #f9f9f9;
       color: #333;
     }
-    .container {
+    #email-verified-page .container {
       margin-top: 80px;
     }
-    .checkmark-wrapper {
+    #email-verified-page .checkmark-wrapper {
       display: inline-block;
       width: 100px;
       height: 100px;
       margin-bottom: 20px;
     }
-    svg {
+    #email-verified-page svg {
       width: 100px;
       height: 100px;
     }
-    .checkmark {
+    #email-verified-page .checkmark {
       fill: none;
       stroke: #28a745;
       stroke-width: 5;
@@ -233,11 +96,11 @@
         stroke-dashoffset: 0;
       }
     }
-    .message {
+    #email-verified-page .message {
       font-size: 18px;
       margin-top: 15px;
     }
-    .download-btn {
+    #email-verified-page .download-btn {
       display: inline-block;
       margin-top: 25px;
       padding: 12px 20px;
@@ -248,69 +111,55 @@
       font-weight: bold;
       transition: background 0.3s;
     }
-    .download-btn:hover {
+    #email-verified-page .download-btn:hover {
       background-color: #218838;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="checkmark-wrapper">
-      <svg viewBox="0 0 52 52">
-        <path class="checkmark" d="M14 27 L22 35 L38 17" />
-      </svg>
+
+  <!-- Reset Password Page -->
+  <div id="reset-password-page" style="display:none;">
+    <div class="container" id="message-container">
+      <h2>Checking for app...</h2>
+      <p>Please wait while we try to open the Compox app.</p>
     </div>
-    <h1>Email Verified!</h1>
-    <p class="message" id="statusMessage">Preparing to open Compox...</p>
-    <a id="downloadLink" class="download-btn" href="#" style="display:none;">
-      Download Compox
-    </a>
+    <div class="container" id="reset-container" style="display:none;">
+      <h2>Reset Your Password</h2>
+      <form id="reset-form">
+        <input type="password" id="password" placeholder="New Password" required />
+        <div class="rules" id="password-rules">
+          <div id="rule-length" class="invalid">• At least 8 characters</div>
+          <div id="rule-upper" class="invalid">• At least 1 uppercase letter (A-Z)</div>
+          <div id="rule-lower" class="invalid">• At least 1 lowercase letter (a-z)</div>
+          <div id="rule-number" class="invalid">• At least 1 number (0-9)</div>
+          <div id="rule-special" class="invalid">• At least 1 special character (~`+=-_.?@$!%*#&)</div>
+        </div>
+        <button type="submit" id="update-btn" disabled>Update Password</button>
+      </form>
+      <p id="status"></p>
+    </div>
   </div>
 
-  <script>
-    const ANDROID_STORE_URL = "https://play.google.com/store/apps/details?id=com.yourcompany.compox";
-    const IOS_STORE_URL = "https://apps.apple.com/app/idYOUR_APP_ID";
-    const DEEP_LINK = "compox://login-callback"; // Your app deep link
+  <!-- Email Verified Page -->
+  <div id="email-verified-page" style="display:none;">
+    <div class="container">
+      <div class="checkmark-wrapper">
+        <svg viewBox="0 0 52 52">
+          <path class="checkmark" d="M14 27 L22 35 L38 17" />
+        </svg>
+      </div>
+      <h1>Email Verified!</h1>
+      <p class="message" id="statusMessage">Preparing to open Compox...</p>
+      <a id="downloadLink" class="download-btn" href="#" style="display:none;">
+        Download Compox
+      </a>
+    </div>
+  </div>
 
-    // Wait for animation before attempting
-    setTimeout(() => {
-      let start = Date.now();
-      let hiddenCheck;
-
-      function visibilityChange() {
-        if (document.hidden) {
-          hiddenCheck = true;
-        }
-      }
-      document.addEventListener("visibilitychange", visibilityChange);
-
-      // Try opening the app
-      window.location.href = DEEP_LINK;
-
-      // After 1.5 seconds, check if app opened
-      setTimeout(() => {
-        document.removeEventListener("visibilitychange", visibilityChange);
-
-        if (hiddenCheck) {
-          document.getElementById("statusMessage").innerText = "Opening Compox...";
-        } else {
-          document.getElementById("statusMessage").innerText = "Compox is not installed.";
-          const downloadLink = document.getElementById("downloadLink");
-          downloadLink.style.display = "inline-block";
-          // Detect platform and set store link
-          if (/android/i.test(navigator.userAgent)) {
-            downloadLink.href = ANDROID_STORE_URL;
-          } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            downloadLink.href = IOS_STORE_URL;
-          } else {
-            downloadLink.href = "https://compox.com"; // Fallback for desktop
-          }
-        }
-      }, 1500);
-    }, 3200);
-  </script>
+  <!-- Supabase JS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- Main Script -->
+  <script src="script.js"></script>
 </body>
 </html>
-</div>
-
-<script src="script.js"></script>
